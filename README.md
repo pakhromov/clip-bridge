@@ -5,16 +5,23 @@ A lightweight clipboard daemon for Wayland.
 ## Why another Wayland clipboard manager?
 
 First of all, it is not a manager; it is a direct replacement for `wl-paste --watch` and `wl-clip-persist` with additional scripting features for copying and pasting.
+
 The benefits are:
+
 1) Instead of all this mess:
-```
-wl-clip-persist --clipboard regular
-wl-paste --type text --watch cliphist store
-wl-paste --type image --watch cliphist store
-```
-you only have one lightweight single-threaded background process, keeping your process tree minimal while continuing to use cliphist as a history manager.
+
+    ```
+    wl-clip-persist --clipboard regular
+    wl-paste --type text --watch cliphist store
+    wl-paste --type image --watch cliphist store
+    ```
+
+    you only have one lightweight single-threaded background process, keeping your process tree minimal while continuing to use cliphist as a history manager.
+
 2) MIME types can be configured extensively.
+
 3) The running daemon can become the owner of the clipboard not only when the previous owner terminates, but also anytime you want by sending it text or binary data to copy from stdin. No more stray wl-copy processes.
+
 4) Scripts can use it to simulate a paste key press into the focused application, so you can create a picker that selects and pastes at once.
 
 https://github.com/user-attachments/assets/78c5584e-8d72-4521-b18f-f995ac4450bd
@@ -22,8 +29,9 @@ https://github.com/user-attachments/assets/78c5584e-8d72-4521-b18f-f995ac4450bd
 ## Requirements
 
 - A Wayland compositor exposing `ext-data-control-v1` or `wlr-data-control-unstable-v1`.
+- External clipboard history manager like `cliphist` or `clipvault`.
 - Primary-selection support requires ext-data-control or version 2 of wlr-data-control.
-- There is no X11 backend; XWayland selections are usable when the compositor exposes them through data-control.
+- XWayland selections are usable when the compositor exposes them through data-control.
 
 ## Build
 
@@ -62,14 +70,13 @@ clip-bridge -cp -t image/png < picture.png
 | Option | Meaning |
 | --- | --- |
 | No mode flag | Run the daemon. |
-| `-c` | Read stdin and replace the regular clipboard. |
-| `-p` | Inject the configured paste shortcut without changing the clipboard. |
-| `-cp` | Copy stdin, then request a paste. Separate `-c -p` flags also work. |
-| `-t MIME`, `--type MIME` | MIME type for `-c` or `-cp`; defaults to `text/plain;charset=utf-8`. |
-| `--config PATH` | Configuration file; daemon mode only. |
-| `--socket PATH` | IPC socket path; accepted in daemon and client modes. |
-| `-h`, `--help` | Print usage. |
-| `--version` | Print the version. |
+| -c | Read stdin and replace the regular clipboard. |
+| -p | Inject the configured paste shortcut without changing the clipboard. |
+| -cp | Copy stdin, then request a paste. Separate `-c -p` flags also work. |
+| -t MIME (--type MIME) | MIME type for `-c` or `-cp`; defaults to `text/plain;charset=utf-8`. |
+| --config PATH | Configuration file; daemon mode only. |
+| -h (--help) | Print usage. |
+| --version | Print the version. |
 
 ## Pasting
 
@@ -89,9 +96,9 @@ You need to reboot for the group membership and the udev rule to take effect, th
 
 ## Configuration
 
-The default configuration path is `$XDG_CONFIG_HOME/clip-bridge/config.ini`, or `~/.config/clip-bridge/config.ini`.
+The configuration path is `$XDG_CONFIG_HOME/clip-bridge/config.ini`, or `~/.config/clip-bridge/config.ini`.
 
-The complete default configuration is:
+The default configuration is:
 
 ```ini
 command = cliphist store
@@ -111,17 +118,17 @@ Quotes and backslashes inside `command` can be used to group or escape individua
 
 | Setting | Meaning |
 | --- | --- |
-| `command` | Command to receive each forwarded payload on stdin. An empty value disables history forwarding while allowing persistence. |
-| `mime_types` | Comma-separated MIME patterns in forwarding preference order. An empty value disables forwarding. |
-| `forward_all` | `false` forwards the first matching advertised type. `true` forwards every allowed type in configured order. |
-| `clipboard` | Monitor `regular`, `primary`, or `both`. |
-| `persistence` | `lazy`, `eager`, or `none`; see below. Applies to both monitored clipboards. |
-| `paste_keybind` | Shortcut injected by `-p` and `-cp`. |
-| `paste_delay_ms` | Delay before injecting paste keys, in milliseconds. |
-| `forward_sensitive` | `false` excludes selections carrying `x-kde-passwordManagerHint` from both history and persistence. `true` bypasses that check. |
-| `timeout_ms` | Inactivity timeout in milliseconds for clipboard transfers, history-command stdin, and unfinished copy uploads; `0` disables it. |
-| `min_size` | Inclusive minimum payload size in bytes; `0` disables the lower bound. |
-| `max_size` | Inclusive maximum payload size in bytes; `0` disables the upper bound. |
+| command | Command to receive each forwarded payload on stdin. An empty value disables history forwarding while allowing persistence. |
+| mime_types | Comma-separated MIME patterns in forwarding preference order. An empty value disables forwarding. |
+| forward_all | `false` forwards the first matching advertised type. `true` forwards every allowed type in configured order. |
+| clipboard | Monitor `regular`, `primary`, or `both`. |
+| persistence | `lazy`, `eager`, or `none`; see below. Applies to both monitored clipboards. |
+| paste_keybind | Shortcut injected by `-p` and `-cp`. |
+| paste_delay_ms | Delay before injecting paste keys, in milliseconds. |
+| forward_sensitive | `false` excludes selections carrying `x-kde-passwordManagerHint` from both history and persistence. `true` bypasses that check. |
+| timeout_ms | Inactivity timeout in milliseconds for clipboard transfers, history-command stdin, and unfinished copy uploads; `0` disables it. |
+| min_size | Inclusive minimum payload size in bytes; `0` disables the lower bound. |
+| max_size | Inclusive maximum payload size in bytes; `0` disables the upper bound. |
 
 ### MIME selection
 
@@ -189,8 +196,6 @@ It requires Bash, GNU AWK, GNU core utilities, and `file`, plus these tools for 
 ![Clipvault image picker](meta/clipvault-images.png)
 
 ## Acknowledgements
-
-Thanks to these projects for inspiration, implementation references, and history backends:
 
 - [zzzclip](https://github.com/Osrepnay/zzzclip) — inspiration for combining clipboard persistence and history forwarding in one process.
 - [clipse](https://github.com/savedra1/clipse) — reference for pasting through a uinput virtual keyboard.
