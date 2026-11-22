@@ -20,23 +20,37 @@ The benefits are:
 
 2) MIME types can be configured extensively.
 
-3) The running daemon can become the owner of the clipboard not only when the previous owner terminates, but also anytime you want by sending it text or binary data to copy from stdin. No more stray wl-copy processes.
+3) Scripts can use `clip-bridge -c` to send text or binary data to the running daemon and make it the owner of the clipboard (copying from scripts without leaving any stray background process like `wl-copy`).
 
-4) Scripts can use it to simulate a paste key press into the focused application, so you can create a picker that selects and pastes at once.
+4) Scripts can use `clip-bridge -p` or `clip-bridge -cp` to simulate a paste key press into the focused application, so you can create a picker that selects one or multiple entries and pastes them at once.
 
 https://github.com/user-attachments/assets/78c5584e-8d72-4521-b18f-f995ac4450bd
 
 ## Requirements
 
 - A Wayland compositor exposing `ext-data-control-v1` or `wlr-data-control-unstable-v1`.
-- External clipboard history manager like `cliphist` or `clipvault`.
+- External clipboard history manager like `cliphist` or `clipvault` and a picker script (optional).
 - Primary-selection support requires ext-data-control or version 2 of wlr-data-control.
 - XWayland selections are usable when the compositor exposes them through data-control.
 
-## Build
+## Installation
+
+### Arch Linux
+
+[clip-bridge](https://aur.archlinux.org/packages/clip-bridge) is available in the AUR:
+
+```sh
+yay -S clip-bridge
+```
+
+### From source
 
 Build dependencies: GCC with C++23 support, make, pkg-config, Wayland headers, and wayland-scanner.
-Install with `make install` (default `PREFIX=/usr/local`).
+
+```sh
+make
+sudo make install   # default PREFIX=/usr/local
+```
 
 ## Usage
 
@@ -79,7 +93,8 @@ clip-bridge -cp -t image/png < picture.png
 
 Pasting uses a Linux uinput virtual keyboard and the application with keyboard focus, so it works regardless of which compositor you are using.
 To enable pasting with `-p` and `-cp`, grant your user access to `/dev/uinput`.
-Keep in mind that granting your user access to /dev/uinput allows processes with that access to inject arbitrary keyboard input into other applications, including a focused root shell. If you understand the security implications, run this from the project directory:
+Keep in mind that granting your user access to `/dev/uinput` allows processes with that access to inject arbitrary keyboard input into other applications, including a focused root shell.
+If you understand the security implications, you can use the provided `99-clip-bridge-uinput.rules`:
 
 ```sh
 sudo groupadd -f uinput
@@ -88,14 +103,14 @@ sudo install -Dm644 99-clip-bridge-uinput.rules /etc/udev/rules.d/99-clip-bridge
 ```
 
 You need to reboot for the group membership and the udev rule to take effect, then start the daemon. No root process or separate input daemon is needed.
-clip-bridge waits for `paste_delay_ms` before sending a key press; by that time, the picker should exit and the desired app should gain keyboard focus.
 
+clip-bridge waits for `paste_delay_ms` before sending a key press; by that time, the picker should exit and the desired app should gain keyboard focus.
 
 ## Configuration
 
 The configuration path is `$XDG_CONFIG_HOME/clip-bridge/config.ini`, or `~/.config/clip-bridge/config.ini`.
 
-The default configuration is:
+You can use `pkill -HUP clip-bridge` to reload configuration of the running daemon. The default is:
 
 ```ini
 command = cliphist store
