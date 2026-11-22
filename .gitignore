@@ -1,0 +1,5 @@
+/clip-bridge
+/clip-bridge.new
+/protocols/*.c
+/protocols/*.h
+/protocols/*.o

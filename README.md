@@ -35,11 +35,8 @@ https://github.com/user-attachments/assets/78c5584e-8d72-4521-b18f-f995ac4450bd
 
 ## Build
 
-Build dependencies: GCC with C++23 support, pkg-config, Wayland headers, and wayland-scanner.
-
-```sh
-./build.sh
-```
+Build dependencies: GCC with C++23 support, make, pkg-config, Wayland headers, and wayland-scanner.
+Install with `make install` (default `PREFIX=/usr/local`).
 
 ## Usage
 
@@ -81,8 +78,8 @@ clip-bridge -cp -t image/png < picture.png
 ## Pasting
 
 Pasting uses a Linux uinput virtual keyboard and the application with keyboard focus, so it works regardless of which compositor you are using.
-clip-bridge waits for `paste_delay_ms` before sending a key press; by that time, the picker should exit and the desired app should gain keyboard focus.
-To enable pasting with `-p` and `-cp`, grant your user access to `/dev/uinput` using the provided udev rule. Run this from the project directory:
+To enable pasting with `-p` and `-cp`, grant your user access to `/dev/uinput`.
+Keep in mind that granting your user access to /dev/uinput allows processes with that access to inject arbitrary keyboard input into other applications, including a focused root shell. If you understand the security implications, run this from the project directory:
 
 ```sh
 sudo groupadd -f uinput
@@ -91,7 +88,7 @@ sudo install -Dm644 99-clip-bridge-uinput.rules /etc/udev/rules.d/99-clip-bridge
 ```
 
 You need to reboot for the group membership and the udev rule to take effect, then start the daemon. No root process or separate input daemon is needed.
-
+clip-bridge waits for `paste_delay_ms` before sending a key press; by that time, the picker should exit and the desired app should gain keyboard focus.
 
 
 ## Configuration

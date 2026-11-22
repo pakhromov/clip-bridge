@@ -702,7 +702,10 @@ void Bridge::readUpload(FD socket) {
                 }
                 size_t amount = std::min<size_t>(current->chunkRemaining, bytes.size() - consumed);
                 auto& payload = current->payload->bytes;
-                if (current->config.limits.exceeds(payload.size(), amount)) return -1;
+                if (current->config.limits.exceeds(payload.size(), amount)) {
+                    current->reply("ERR copy exceeds max_size\n");
+                    return -1;
+                }
                 payload.insert(payload.end(), bytes.begin() + consumed, bytes.begin() + consumed + amount);
                 consumed += amount; current->chunkRemaining -= amount;
             }
@@ -732,10 +735,10 @@ void Bridge::finishUpload(const std::shared_ptr<Upload>& current, bool success) 
     auto payload = current->payload; payload->complete = payload->finished = true;
     abandon(regular);
     install(regular, {payload}, payload->mime == TEXT_MIME);
+    // The barrier retains this completed request; only unfinished uploads can be superseded.
+    upload.reset();
     if (!order({payload->mime}, current->config).empty()) forward(payload, current->config.command, false);
     defer([this, current] {
-        if (upload != current) return;
-        upload.reset();
         try {
             if (current->pasteAfter) queuePaste(current->config.pasteKeys, current->config.pasteDelay);
             current->reply("OK\n");
@@ -761,7 +764,7 @@ int main(int argc, char** argv) {
                           "Copy mode accepts --type/-t; default MIME: text/plain;charset=utf-8.\n"
                           "Send SIGHUP to the daemon to reload configuration."); return 0;
             }
-            if (arg == "--version") { std::puts("clip-bridge 0.1"); return 0; }
+            if (arg == "--version") { std::puts("clip-bridge " CLIP_BRIDGE_VERSION); return 0; }
             if (arg.size() > 1 && arg[0] == '-' && arg.find_first_not_of("cp", 1) == std::string::npos) {
                 copying = copying || arg.find('c') != std::string::npos;
                 pasting = pasting || arg.find('p') != std::string::npos;

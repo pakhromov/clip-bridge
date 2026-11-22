@@ -73,8 +73,7 @@ inline std::vector<std::string> parseCommand(const std::string& text) {
             else arg += c;
         } else if (c == '\'' || c == '"') {
             quote = c; started = true;
-        } else if (c == '#' && (i == 0 || text[i - 1] == ' ' || text[i - 1] == '\n')) {
-            if (i + 1 == text.size()) throw std::runtime_error("empty command");
+        } else if (c == '#' && !started) {
             auto end = text.find('\n', i);
             if (end == std::string::npos) break;
             i = end;
